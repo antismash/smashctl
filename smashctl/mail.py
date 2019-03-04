@@ -1,6 +1,7 @@
 """Email sending"""
 from email.mime.text import MIMEText
 import smtplib
+import os
 from smashctl.common import AntismashRunError
 from smashctl.messages import (
     message_template,
@@ -22,6 +23,29 @@ class MailConfig:
         'tool',
         'username',
     )
+
+    @classmethod
+    def from_env(cls):
+        """Initialize from environment variables"""
+        config = cls()
+        server = os.environ.get("SMASHCTL_EMAIL_HOST")
+        if not server:
+            config.configured = False
+            return config
+
+        config.base_url = os.environ.get("SMASHCTL_BASE_URL", "https://antismash.secondarymetabolites.org")
+        config.encrypt = os.environ.get("SMASHCTL_EMAIL_ENCRYPT", "no")
+        config.password = os.environ.get("SMASHCTL_EMAIL_PASSWORD", "")
+        config.port = os.environ.get("SMASHCTL_EMAIL_PORT", 587)
+        config.sender = os.environ.get("SMASHCTL_EMAIL_FROM", "noreply@secondarymetabolites.org")
+        config.server = server
+        config.support = os.environ.get("SMASHCTL_EMAIL_SUPPORT", "antismash@secondarymetabolites.org")
+        config.tool = os.environ.get("SMASHCTL_TOOL_NAME", "antiSMASH")
+        config.username = os.environ.get("SMASHCTL_EMAIL_USER", "")
+
+        config.configured = True
+        return config
+
 
     @classmethod
     def from_args(cls, args):

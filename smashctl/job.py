@@ -126,9 +126,9 @@ def cancel(args, storage):
 
     ret = "Canceled job {j.job_id} ({j.state})".format(j=job)
 
-    if args.send_mail:
+    if args.notify:
         ret += '\n'
-        ret += dispatch_mail(args, job)
+        ret += dispatch_mail(job)
 
     return ret
 
@@ -141,14 +141,14 @@ def notify(args, storage):
     except ValueError as e:
         raise AntismashRunError('Job {} not found in database, {}!'.format(args.job_id, e))
 
-    return dispatch_mail(args, job)
+    return dispatch_mail(job)
 
 
-def dispatch_mail(args, job):
+def dispatch_mail(job):
     """Dispatch the actual email for a job."""
     if not job.email:
         return "No email configured for job {}".format(job.job_id)
-    mail_conf = MailConfig.from_args(args)
+    mail_conf = MailConfig.from_env()
 
     send_mail(mail_conf, job)
     return "Mail sent for job {j.job_id} ({j.state})".format(j=job)
