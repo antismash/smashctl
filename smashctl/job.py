@@ -59,7 +59,7 @@ def joblist(args, storage):
     """Handle listing jobs"""
     queue_key = 'jobs:{}'.format(args.queue)
 
-    template = '{job.job_id}\t{job.dispatcher}\t{job.email}\t{job.added}\t{job.last_changed}\t' \
+    template = '{job.job_id}\t{job.jobtype}\t{job.dispatcher}\t{job.email}\t{job.added}\t{job.last_changed}\t' \
                '{job.filename}{job.download}\t{job.state}\t{job.status}'
 
     result_lines = []
