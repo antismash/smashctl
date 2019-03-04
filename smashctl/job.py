@@ -100,7 +100,7 @@ def restart(args, storage):
     job.commit()
 
     new_queue = "jobs:queued"
-    storage.lrem(old_queue, job.job_id, -1)
+    storage.lrem(old_queue, value=job.job_id, count=-1)
     storage.rpush(new_queue, job.job_id)
     return "Restarted job {}".format(job.job_id)
 
@@ -121,7 +121,7 @@ def cancel(args, storage):
     job.state = args.state
     job.status = "{}: {}".format(args.state, args.reason)
 
-    storage.lrem('jobs:{}'.format(old_state), job.job_id, -1)
+    storage.lrem('jobs:{}'.format(old_state), value=job.job_id, count=-1)
     storage.lpush('jobs:{}'.format(job.state), job.job_id)
 
     ret = "Canceled job {j.job_id} ({j.state})".format(j=job)
