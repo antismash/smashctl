@@ -94,14 +94,15 @@ def restart(args, storage):
     job.state = 'queued'
     job.status = 'restarted'
     job.dispatcher = ''
+    job.target_queues = ["jobs:queued"]
     if job.download:
-        job.filename = ''
+        job.needs_download = True
+        job.target_queues.append("jobs:downloads")
+
+    storage.lrem(old_queue, value=job.job_id, count=-1)
+    storage.rpush(job.target_queues.pop(), job.job_id)
 
     job.commit()
-
-    new_queue = "jobs:queued"
-    storage.lrem(old_queue, value=job.job_id, count=-1)
-    storage.rpush(new_queue, job.job_id)
     return "Restarted job {}".format(job.job_id)
 
 
