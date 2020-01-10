@@ -23,6 +23,8 @@ def register(subparsers):  # pragma: no cover
 
     p_restart = job_subparsers.add_parser('restart', help='Restart a job')
     p_restart.add_argument('job_id', help="ID of the job to restart")
+    p_restart.add_argument('-q', '--queue', default="jobs:queued",
+                           help="Queue to send the job to (default: %(default)s).")
     p_restart.set_defaults(func=restart)
 
     p_cancel = job_subparsers.add_parser('cancel', help='Cancel a job')
@@ -94,7 +96,7 @@ def restart(args, storage):
     job.state = 'queued'
     job.status = 'restarted'
     job.dispatcher = ''
-    job.target_queues = ["jobs:queued"]
+    job.target_queues = [args.queue]
     if job.download:
         job.needs_download = True
         job.target_queues.append("jobs:downloads")
