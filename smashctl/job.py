@@ -17,7 +17,7 @@ def register(subparsers):  # pragma: no cover
     p_show.set_defaults(func=show)
 
     p_list = job_subparsers.add_parser('list', help='List jobs')
-    p_list.add_argument('-q', '--queue', default='queued',
+    p_list.add_argument('-q', '--queue', default='running',
                         help="What queue to list jobs for (default: %(default)s)")
     p_list.set_defaults(func=joblist)
 
