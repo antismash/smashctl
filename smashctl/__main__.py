@@ -6,7 +6,10 @@ from envparse import Env
 from . import __version__
 from .common import run_command
 from .storage import get_storage
-from . import job
+from . import (
+    control,
+    job,
+)
 
 
 def main():
@@ -24,6 +27,7 @@ def main():
     parser.add_argument('-V', '--version', action='version', version=__version__)
 
     subparsers = parser.add_subparsers(title='subcommands')
+    control.register(subparsers)
     job.register(subparsers)
 
     args = parser.parse_args()
