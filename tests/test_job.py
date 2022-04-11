@@ -37,14 +37,14 @@ def test_joblist_simple(db):
     for j in running_jobs:
         j.commit()
         db.lpush('jobs:running', j.job_id)
-        expected_lines_running.insert(0, '{job.job_id}\t{job.dispatcher}\t{job.email}\t{job.added}\t{job.last_changed}\t{job.filename}{job.download}\t{job.state}\t{job.status}'.format(job=j))
+        expected_lines_running.insert(0, '{job.job_id}\t{job.jobtype}\t{job.dispatcher}\t{job.email}\t{job.added}\t{job.last_changed}\t{job.filename}{job.download}\t{job.state}\t{job.status}'.format(job=j))
 
     db.lpush('jobs:running', 'bacteria-fake')
 
     for j in queued_jobs:
         j.commit()
         db.lpush('jobs:queued', j.job_id)
-        expected_lines_queued.insert(0, '{job.job_id}\t{job.dispatcher}\t{job.email}\t{job.added}\t{job.last_changed}\t{job.filename}{job.download}\t{job.state}\t{job.status}'.format(job=j))
+        expected_lines_queued.insert(0, '{job.job_id}\t{job.jobtype}\t{job.dispatcher}\t{job.email}\t{job.added}\t{job.last_changed}\t{job.filename}{job.download}\t{job.state}\t{job.status}'.format(job=j))
 
     args = Namespace(queue='queued')
     expected = '\n'.join(expected_lines_queued)
@@ -65,7 +65,7 @@ def test_restart(db):
     j.commit()
     db.lpush('jobs:running', j.job_id)
 
-    args = Namespace(job_id=j.job_id)
+    args = Namespace(job_id=j.job_id, queue="jobs:queued")
 
     # Jobs in 'created' state can't be restarted
     with pytest.raises(AntismashRunError):
@@ -92,4 +92,3 @@ def test_restart(db):
 
 def test_notify(mocker, db):
     j = Job(db, 'bacteria-fake')
-

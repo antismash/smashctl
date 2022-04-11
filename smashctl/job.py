@@ -1,6 +1,5 @@
 """Job management logic"""
 from antismash_models import SyncJob as Job
-from email.mime.text import MIMEText
 
 from smashctl.common import AntismashRunError
 from smashctl.mail import send_mail, MailConfig
@@ -155,4 +154,3 @@ def dispatch_mail(job):
 
     send_mail(mail_conf, job)
     return "Mail sent for job {j.job_id} ({j.state})".format(j=job)
-
