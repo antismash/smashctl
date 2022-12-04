@@ -20,8 +20,10 @@ tests_require = [
     'pytest',
     'coverage',
     'pytest-cov',
-    'mockredispy-kblin',
     'pytest-mock',
+    'fakeredis',
+    'flake8',
+    'mypy',
 ]
 
 

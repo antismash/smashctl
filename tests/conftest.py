@@ -1,7 +1,7 @@
-import mockredis
+import fakeredis
 import pytest
 
 
 @pytest.fixture
 def db():
-    return mockredis.MockRedis(encoding="utf-8", decode_responses=True)
+    return fakeredis.FakeRedis(encoding="utf-8", decode_responses=True)
