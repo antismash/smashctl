@@ -60,7 +60,6 @@ def test_joblist_simple(db):
 
 def test_restart(db):
     j = Job(db, 'bacteria-1')
-    j.download = 'foo'
     j.filename = 'foo.gbk'
     j.commit()
     db.lpush('jobs:running', j.job_id)
@@ -83,7 +82,6 @@ def test_restart(db):
     assert j.state == 'queued'
     assert j.status == 'restarted'
     print(j.to_dict())
-    assert not j.filename
 
     args = Namespace(job_id='bacteria-fake')
     with pytest.raises(AntismashRunError):
