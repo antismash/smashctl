@@ -13,11 +13,15 @@ def register(subparsers):  # pragma: no cover
 
     p_show = job_subparsers.add_parser('show', help='Show a job')
     p_show.add_argument('job_id', help="ID of the job to show")
+    p_show.add_argument('-p', '--pretty', choices=["oneline", "verbose"], default="oneline",
+                        help="Show job in one line or verbose mode (default: %(default)s)")
     p_show.set_defaults(func=show)
 
     p_list = job_subparsers.add_parser('list', help='List jobs')
     p_list.add_argument('-q', '--queue', default='running',
                         help="What queue to list jobs for (default: %(default)s)")
+    p_list.add_argument('-p', '--pretty', choices=["oneline", "verbose"], default="oneline",
+                        help="Show jobs in one line per job or verbose mode (default: %(default)s)")
     p_list.set_defaults(func=joblist)
 
     p_restart = job_subparsers.add_parser('restart', help='Restart a job')
@@ -43,6 +47,22 @@ def register(subparsers):  # pragma: no cover
     p_notify.set_defaults(func=notify)
 
 
+def _format_job(job: Job, format: str = "oneline") -> str:
+    """Format a job for printing"""
+
+    if format == "oneline":
+        template = '{job.job_id}\t{job.jobtype}\t{job.dispatcher}\t{job.email}\t{job.added}\t{job.last_changed}\t' \
+               '{job.filename}{job.download}\t{job.state}\t{job.status}'
+    elif format == "verbose":
+        template = "{job.job_id}\n"
+        for var in sorted(Job.PROPERTIES + Job.ATTRIBUTES):
+            template += f"{var} = {{job.{var}}}\n"
+    else:
+        raise ValueError(f"Invalid format: {format}")
+
+    return template.format(job=job)
+
+
 def show(args, storage):
     """Handle smashctl job show"""
     try:
@@ -51,18 +71,12 @@ def show(args, storage):
     except ValueError as e:
         raise AntismashRunError('Job {} not found in database, {}!'.format(args.job_id, e))
 
-    template = "{job.job_id}\t{job.dispatcher}\t{job.added}\t{job.last_changed}\t{job.email}\t{job.state}\t{job.status}"
-
-    return template.format(job=job)
+    return _format_job(job, args.pretty)
 
 
 def joblist(args, storage):
     """Handle listing jobs"""
     queue_key = 'jobs:{}'.format(args.queue)
-
-    template = '{job.job_id}\t{job.jobtype}\t{job.dispatcher}\t{job.email}\t{job.added}\t{job.last_changed}\t' \
-               '{job.filename}{job.download}\t{job.state}\t{job.status}'
-
     result_lines = []
 
     jobs = storage.lrange(queue_key, 0, -1)
@@ -70,7 +84,7 @@ def joblist(args, storage):
         try:
             job = Job(storage, job_id)
             job.fetch()
-            result_lines.append(template.format(job=job))
+            result_lines.append(_format_job(job, args.pretty))
         except ValueError:
             pass
 
