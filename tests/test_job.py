@@ -9,9 +9,9 @@ from smashctl import job
 def test_show_simple(db):
     j = Job(db, 'bacteria-fake')
     j.commit()
-    args = Namespace(job_id='bacteria-fake')
+    args = Namespace(job_id='bacteria-fake', pretty="oneline")
 
-    expected = "{job.job_id}\t{job.dispatcher}\t{job.added}\t{job.last_changed}\t{job.email}\t{job.state}\t{job.status}".format(job=j)
+    expected = job._format_job(j)
     assert job.show(args, db) == expected
 
     args.job_id = 'bacteria-nonexisting'
@@ -46,15 +46,15 @@ def test_joblist_simple(db):
         db.lpush('jobs:queued', j.job_id)
         expected_lines_queued.insert(0, '{job.job_id}\t{job.jobtype}\t{job.dispatcher}\t{job.email}\t{job.added}\t{job.last_changed}\t{job.filename}{job.download}\t{job.state}\t{job.status}'.format(job=j))
 
-    args = Namespace(queue='queued')
+    args = Namespace(queue='queued', pretty="oneline")
     expected = '\n'.join(expected_lines_queued)
     assert job.joblist(args, db) == expected
 
-    args = Namespace(queue='running')
+    args = Namespace(queue='running', pretty="oneline")
     expected = '\n'.join(expected_lines_running)
     assert job.joblist(args, db) == expected
 
-    args = Namespace(queue='fake')
+    args = Namespace(queue='fake', pretty="oneline")
     assert job.joblist(args, db) == "No jobs in queue 'fake'"
 
 
