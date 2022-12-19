@@ -1,13 +1,21 @@
 """Job management logic"""
+import argparse
+from typing import Callable
+
 from antismash_models import SyncJob as Job
+from redis import Redis
 
 from smashctl.common import AntismashRunError
 from smashctl.mail import send_mail, MailConfig
 
 
-def register(subparsers):  # pragma: no cover
+CommandFunc = Callable[[argparse.Namespace, Redis], str]
+
+
+def register(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]"):  # pragma: no cover
     """Register job subcommands"""
     p_job = subparsers.add_parser('job', help='Show and manipulate jobs')
+    p_job.set_defaults(func=_default_action(joblist, queue="running", pretty="oneline"))
 
     job_subparsers = p_job.add_subparsers(title='job-related commands')
 
@@ -45,6 +53,14 @@ def register(subparsers):  # pragma: no cover
     p_notify = job_subparsers.add_parser('notify', help='Notify user about the job outcome')
     p_notify.add_argument('job_id', help="ID of the job to notify for")
     p_notify.set_defaults(func=notify)
+
+
+def _default_action(func: CommandFunc, **kwargs) -> CommandFunc:
+    def new_func(args: argparse.Namespace, storage: Redis) -> str:
+        for name, value in kwargs.items():
+            setattr(args, name, value)
+        return func(args, storage)
+    return new_func
 
 
 def _format_job(job: Job, format: str = "oneline") -> str:
