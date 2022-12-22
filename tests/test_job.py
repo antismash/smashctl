@@ -90,15 +90,3 @@ def test_restart(db):
 
 def test_notify(mocker, db):
     j = Job(db, 'bacteria-fake')
-
-
-def test_default_action(db):
-    def fake_func(args, storage):
-        assert storage == db
-        assert "extra" in args
-        assert "unused" not in args
-
-    opts = Namespace()
-
-    fn = job._default_action(fake_func, extra=True)
-    fn(opts, db)
