@@ -1,8 +1,6 @@
 """dispatcher control logic"""
 
 import argparse
-from ast import arg
-from pydoc import apropos
 from typing import List
 
 from antismash_models import SyncControl as Control
@@ -30,13 +28,22 @@ def register(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]"):
 
 def control_list(args: argparse.Namespace, storage: Redis) -> str:
     """List running dispatchers"""
-    lines : List[str] = []
+    lines: List[str] = []
     dispatcher_ids = _get_all_dispatcher_names(storage)
     for dispatcher_id in dispatcher_ids:
-        d = Control(storage, dispatcher_id, 0).fetch()
+        d: Control = Control(storage, dispatcher_id, 0).fetch()  # type: ignore
 
         if args.pretty == "simple":
-            lines.append(f"{d.name:<16}\t{d.stop_scheduled}\t{d.status}\t{d.version}\t{d.max_jobs}\t{d.running_jobs}")
+            lines.append(
+                "\t".join([
+                    f"{d.name:<16}",
+                    f"{d.stop_scheduled}",
+                    d.status,
+                    d.version,
+                    f"{d.max_jobs}",
+                    f"{d.running_jobs}",
+                ])
+            )
             continue
 
         lines.append(f"""{d.name}
@@ -52,24 +59,23 @@ def control_list(args: argparse.Namespace, storage: Redis) -> str:
 
 def control_stop(args: argparse.Namespace, storage: Redis) -> str:
     """Stop dispatcher(s)"""
-    output : List[str] = []
+    output: List[str] = []
 
     if "all" in args.names:
         args.names = _get_all_dispatcher_names(storage)
 
     for dispatcher_id in args.names:
         try:
-            d = Control(storage, dispatcher_id, 0).fetch()
+            d = Control(storage, dispatcher_id, 0).fetch()  # type: ignore
             d.stop_scheduled = True
             d.commit()
             output.append(f"Stopping dispatcher {dispatcher_id}")
         except ValueError:
             output.append(f"Skipping noexistent dispatcher {dispatcher_id}")
 
-
     return "\n".join(output)
 
 
 def _get_all_dispatcher_names(storage: Redis) -> List[str]:
     """Get all dispatcher names, sorted"""
-    return list(map(lambda x: x.split(":")[-1],sorted(storage.keys("control:*"))))
+    return list(map(lambda x: x.split(":")[-1], sorted(storage.keys("control:*"))))

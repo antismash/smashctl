@@ -54,8 +54,9 @@ def _format_job(job: Job, format: str = "oneline") -> str:
     """Format a job for printing"""
 
     if format == "oneline":
-        template = '{job.job_id}\t{job.jobtype}\t{job.dispatcher}\t{job.email}\t{job.added}\t{job.last_changed}\t' \
-               '{job.filename}{job.download}\t{job.state}\t{job.status}'
+        template: str = ("{job.job_id}\t{job.jobtype}\t{job.dispatcher}\t"
+                         "{job.email}\t{job.added}\t{job.last_changed}\t"
+                         "{job.filename}{job.download}\t{job.state}\t{job.status}")
     elif format == "verbose":
         template = "{job.job_id}\n"
         for var in sorted(Job.PROPERTIES + Job.ATTRIBUTES):
@@ -66,18 +67,18 @@ def _format_job(job: Job, format: str = "oneline") -> str:
     return template.format(job=job)
 
 
-def show(args, storage):
+def show(args, storage) -> str:
     """Handle smashctl job show"""
     try:
         job = Job(storage, args.job_id)
-        job.fetch()
+        job.fetch()  # type: ignore
     except ValueError as e:
         raise AntismashRunError('Job {} not found in database, {}!'.format(args.job_id, e))
 
     return _format_job(job, args.pretty)
 
 
-def joblist(args, storage):
+def joblist(args, storage) -> str:
     """Handle listing jobs"""
     queue_key = 'jobs:{}'.format(args.queue)
     result_lines = []
@@ -86,7 +87,7 @@ def joblist(args, storage):
     for job_id in jobs:
         try:
             job = Job(storage, job_id)
-            job.fetch()
+            job.fetch()  # type: ignore
             result_lines.append(_format_job(job, args.pretty))
         except ValueError:
             pass
@@ -97,16 +98,16 @@ def joblist(args, storage):
     return "\n".join(result_lines)
 
 
-def restart(args, storage):
+def restart(args, storage) -> str:
     """Restart a given job"""
     try:
-        job = Job(storage, args.job_id)
-        job.fetch()
+        # ignore the type on Job to avoid loads of other type errors below
+        job = Job(storage, args.job_id).fetch()  # type: ignore
     except ValueError as e:
         raise AntismashRunError('Job {} not found in database, {}!'.format(args.job_id, e))
 
     if job.state not in ('queued', 'running', 'done', 'failed'):
-        raise AntismashRunError('Job {job.job_id} in state {job.state} cannot be restarted'.format(job=job))
+        raise AntismashRunError(f'Job {job.job_id} in state {job.state} cannot be restarted')
 
     old_queue = "jobs:{}".format(job.state)
     job.state = 'queued'
