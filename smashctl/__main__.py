@@ -9,6 +9,7 @@ from .storage import get_storage
 from . import (
     control,
     job,
+    notice,
 )
 
 
@@ -29,6 +30,7 @@ def main():
     subparsers = parser.add_subparsers(title='subcommands')
     control.register(subparsers)
     job.register(subparsers)
+    notice.register(subparsers)
 
     args = parser.parse_args()
     store = get_storage(args.db)
