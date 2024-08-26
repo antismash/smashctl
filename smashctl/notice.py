@@ -1,7 +1,7 @@
 """website notification handling"""
 
 import argparse
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, UTC
 import uuid
 
 from antismash_models import SyncNotice as Notice
@@ -15,7 +15,7 @@ SELECTABLE_CATEGORIES = ['error', 'warning', 'info']
 def register(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]") \
         -> None:  # pragma: no cover
     """Register notice subcommands"""
-    now = datetime.utcnow()
+    now = datetime.now(UTC)
     next_week = now + timedelta(days=7)
 
     p_notice = subparsers.add_parser("notice", help="Show and control notifications")
